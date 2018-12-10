@@ -1,6 +1,6 @@
 /* 
  * File:   newmain.c
- * Author: Erdem Onat ARDALI
+ * Author: Celil Can ANIK, Erdem Onat ARDALI, O?uzhan Akba?
  * Created on 09 Kasim 2018 Çarsamba, 20:28
  * 
  * First scene shows "Press OK to insert parameter" on LCD
@@ -55,7 +55,7 @@ unsigned int scene_n = 0; //Scene number
 double Kp = 0.0; //Proportional gain
 double Ki = 0.0; //Integral gain
 double Kd = 0.0; //Derivative gain
-bit input_mode; //Input mode flag
+char input_mode; //Input mode flag
 bit isFirstScene; //First Scene flag
 bit isEsc; //Escape button flag
 //Old and new bits for catching rising trigger of buttons
@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
         RE0_new = RE0;
         RE1_new = RE1;
         RE2_new = RE2;
-
+                
         if (scene_n == 1) position = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;
         if (scene_n == 2) velocity = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;
         if (scene_n == 3) Kp = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;

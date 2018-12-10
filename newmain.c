@@ -86,7 +86,7 @@ int p_derivative = 0;
 int p_controller_out = 0;
 
 unsigned int velocity = 0; // ANGULAR VELOCITY ( PULSE / dt )
-long int position = 0;
+long int position = 0;     // POSITION in PULSES
 long int old_position = 0;
 
 

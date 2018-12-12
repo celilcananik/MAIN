@@ -52,9 +52,12 @@ int second_dig = 0; //Second digit
 int third_dig = 0; //Third digit
 int fourth_dig = 0; //Fourth digit
 unsigned int scene_n = 0; //Scene number
-double Kp = 0.0; //Proportional gain
-double Ki = 0.0; //Integral gain
-double Kd = 0.0; //Derivative gain
+double v_Kp = 0.0; //Proportional gain
+double v_Ki = 0.0; //Integral gain
+double v_Kd = 0.0; //Derivative gain
+double p_Kp = 0.0; //Proportional gain
+double p_Ki = 0.0; //Integral gain
+double p_Kd = 0.0; //Derivative gain
 char input_mode; //Input mode flag
 bit isFirstScene; //First Scene flag
 bit isEsc; //Escape button flag
@@ -154,9 +157,9 @@ int main(int argc, char** argv) {
                 
         if (scene_n == 1) position = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;
         if (scene_n == 2) velocity = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;
-        if (scene_n == 3) Kp = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
-        if (scene_n == 4) Ki = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
-        if (scene_n == 5) Kd = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
+        if (scene_n == 3) p_Kp = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
+        if (scene_n == 4) p_Ki = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
+        if (scene_n == 5) p_Kd = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
 
         //Up button
         if (RC0_old == 0 && RC0_new == 1 && input_mode) {
@@ -326,6 +329,12 @@ int main(int argc, char** argv) {
         RE0_old = RE0_new;
         RE1_old = RE1_new;
         RE2_old = RE2_new;
+        
+        // TEST CODE
+        
+        
+        
+        
     }
     return (EXIT_SUCCESS);
 }
@@ -350,17 +359,17 @@ void posVel_output_scene(void) {
 
 void K1_output_scene(void) {
     lcd_goto(0);
-    sprintf(str, "Kp: %0.3f", Kp);
+    sprintf(str, "Kp: %0.3f", p_Kp);
     lcd_puts(str);
     lcd_goto(64);
-    sprintf(str, "Ki: %0.3f", Ki);
+    sprintf(str, "Ki: %0.3f", p_Ki);
     lcd_puts(str);
     lcd_goto(60);
 }
 
 void K2_output_scene(void) {
     lcd_goto(0);
-    sprintf(str, "Kd: %0.3f", Kd);
+    sprintf(str, "Kd: %0.3f", p_Kd);
     lcd_puts(str);
     lcd_goto(60);
 }
@@ -444,7 +453,7 @@ int velocity_control(int v_set_point) {
         v_integral = v_integral_MIN;
     }
     v_derivative = v_error - v_old_error;
-    v_controller_out = floor(Kp * v_error + Ki * v_integral + Kd * v_derivative);
+    v_controller_out = floor(v_Kp * v_error + v_Ki * v_integral + v_Kd * v_derivative);
     v_error = v_old_error;
 
     if (v_controller_out > 1000) {
@@ -464,7 +473,7 @@ int position_control(int p_set_point) {
         p_integral = p_integral_MIN;
     }
     p_derivative = p_error - p_old_error;
-    p_controller_out = floor(Kp * p_error + Ki * p_integral + Kd * p_derivative);
+    p_controller_out = floor(p_Kp * p_error + p_Ki * p_integral + p_Kd * p_derivative);
     p_error = p_old_error;
 
     if (p_controller_out > p_controller_MAX) {

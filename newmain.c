@@ -2,7 +2,7 @@
  * File:   newmain.c
  * Author: Celil Can ANIK, Erdem Onat ARDALI, O?uzhan Akba?
  * Created on 09 Kasim 2018 Çarsamba, 20:28
- * asdasdasdasdasd
+ * 
  * First scene shows "Press OK to insert parameter" on LCD
  * Output scene shows the entered parameters on LCD
  * Position scene shows input mode for position on LCD

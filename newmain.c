@@ -35,14 +35,19 @@
 #define A_not PORTBbits.RB2
 #define B_not PORTBbits.RB3
 
-#define p_controller_MAX 1000
-#define p_controller_MIN -1000
+#define p_controller_MAX 200
+#define p_controller_MIN -200
 #define v_controller_MAX 1000
 #define v_controller_MIN -1000
 #define p_integral_MAX   2000
 #define p_integral_MIN   -2000
 #define v_integral_MAX   2000
 #define v_integral_MIN   -2000
+
+// dummy variables
+int c_o=0;
+// dummy variables end
+
 
 unsigned char str[13] = "            ";
 unsigned char str2[4] = "   ";
@@ -55,7 +60,7 @@ unsigned int scene_n = 0; //Scene number
 double v_Kp = 0.0; //Proportional gain
 double v_Ki = 0.0; //Integral gain
 double v_Kd = 0.0; //Derivative gain
-double p_Kp = 0.0; //Proportional gain
+double p_Kp = 5.0; //Proportional gain
 double p_Ki = 0.0; //Integral gain
 double p_Kd = 0.0; //Derivative gain
 char input_mode; //Input mode flag
@@ -137,7 +142,7 @@ int main(int argc, char** argv) {
     CCPTMRS0 = 0x00;
     CCPTMRS1 = 0x00; //  ' select TM1/TM2 for CCP4 use ( TIMER2 used for PWM)                      
     CCP4CON = 0x3C; // ' Setup CCP4 single output for PWM , bits 3,2 , bits 5,4 = 9th and 10 bit of duty cycle ,
-    CCPR4L = 0x00; // ' Lower Byte register for DUTY CYCLE OF PWM  - 8 bits of duty cycle 
+    CCPR4L = 0x00; // ' PWM Value 
 
     PR2 = 0xC7; //' set the PWM period = [(PR2+1)x 4xTosc / TM2 prescale value  
     T2CON = 0x04; //' Timer 2 ON - POSTSCALLER SETTING NOT USED BY PWM , OLY PRESCALE SETTING - PRESCALE: 00 =1 ,01 = 4,1x = 16
@@ -332,6 +337,12 @@ int main(int argc, char** argv) {
         
         // TEST CODE
         
+        c_o = position_control(1000);
+        if (c_o < 0) {
+            c_o = -1*c_o;
+        }
+        CCPR4L = c_o;
+        __delay_ms(1);
         
         
         
@@ -440,7 +451,7 @@ void interrupt high_priorty() {
 
 void delay(int ms) {
     for (int i = 1; i <= ms; i = i + 90) {
-        __delay_ms(90);
+        __delay_us(90);
     }
 }
 
@@ -464,7 +475,7 @@ int velocity_control(int v_set_point) {
     return v_controller_out;
 }
 
-int position_control(int p_set_point) {
+int position_control(int p_set_point) {     // PI CONTROL
     p_error = p_set_point - position;
     p_integral = floor(p_integral + p_error);
     if (p_integral > p_integral_MAX) {
@@ -472,9 +483,9 @@ int position_control(int p_set_point) {
     } else if (p_integral < p_integral_MIN) {
         p_integral = p_integral_MIN;
     }
-    p_derivative = p_error - p_old_error;
-    p_controller_out = floor(p_Kp * p_error + p_Ki * p_integral + p_Kd * p_derivative);
-    p_error = p_old_error;
+    /* p_derivative = p_error - p_old_error;*/
+    p_controller_out = floor(p_Kp * p_error + p_Ki * p_integral /* + p_Kd * p_derivative */);
+    /* p_error = p_old_error; */
 
     if (p_controller_out > p_controller_MAX) {
         p_controller_out = p_controller_MAX;

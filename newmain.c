@@ -131,13 +131,20 @@ int main(int argc, char** argv) {
     TRISE = 0x07;
     PORTE = 0;
 
-    // ENCODER INPUT CONFIGS 
+    // ENCODER INPUT CONFIG  -- CONTROL LOOP TIMER CONFIG 
     INTCON2bits.RBPU = 0;
     WPUB = 0x00;
-    INTCON = 0xD0; // GIE=1, PEIE=1, INT0IE=1,
+    INTCON = 0;
+    INTCONbits.TMR0IE = 1;        // bit5 TMR0 Overflow Interrupt Enable bit...1 = Enables the TMR0 interrupt
+    INTCONbits.TMR0IF = 0;        // Timer0 flag
+    INTCONbits.GIE = 1;
+    INTCONbits.PEIE = 1;
+    INTCONbits. INT0IE = 1;
     INTCON2bits.INTEDG0 = 1;
     INTCON2bits.INTEDG1 = 1;
     INTCON3bits.INT1IE = 1;
+    
+    TMR0 = 6;       // Timer0 (Control loop interupt initial value) - 125 Hz , 8 ms
 
     CCPTMRS0 = 0x00;
     CCPTMRS1 = 0x00; //  ' select TM1/TM2 for CCP4 use ( TIMER2 used for PWM)                      
@@ -335,14 +342,9 @@ int main(int argc, char** argv) {
         RE1_old = RE1_new;
         RE2_old = RE2_new;
         
-        // TEST CODE
+        // ANY OTHER SLOW CODES
         
-        c_o = position_control(1000);
-        if (c_o < 0) {
-            c_o = -1*c_o;
-        }
-        CCPR4L = c_o;
-        __delay_ms(1);
+        
         
         
         
@@ -446,6 +448,16 @@ void interrupt high_priorty() {
             position--;
         }
         INT1IF = 0;
+    }
+    if (TMR0IF) {
+        TMR0 = 6;
+        c_o = position_control(1000);
+        if (c_o < 0) {
+            c_o = -1*c_o;
+        }
+        CCPR4L = c_o;
+        TMR0IF = 0;
+        
     }
 }
 

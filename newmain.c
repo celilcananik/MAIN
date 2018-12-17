@@ -295,10 +295,12 @@ int main(int argc, char** argv) {
         if (RE1_old == 0 && RE1_new == 1 || isEsc) {
             input_mode = 1;
             isFirstScene = 0;
-            first_dig = 0;
-            second_dig = 0;
-            third_dig = 0;
-            fourth_dig = 0;
+            if(scene_n < 5) {
+                first_dig = 0;
+                second_dig = 0;
+                third_dig = 0;
+                fourth_dig = 0;
+            }
 
             lcd_clear();
 

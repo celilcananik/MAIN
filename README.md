@@ -1,4 +1,9 @@
-# MAIN
+# GITHUB USAGE FOR DUMMIES
+
+# Updating Local Folder ( Pulling Project to Local )
+    git pull origin master
+    git pull origin my_default_branch_name
+
 # Deleting Dummy Folders
 The steps for doing this are:
 

@@ -17,7 +17,7 @@
 
 #include <pic18f46k22.h>
 #include <htc.h>
-#define _XTAL_FREQ 32000000
+#define _XTAL_FREQ 8000000
 
 #define	LCD_RS PORTAbits.RA4
 

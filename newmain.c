@@ -19,7 +19,7 @@
 #include <htc.h>
 #include "LCD.H"
 #include <math.h>
-#define _XTAL_FREQ 32000000
+#define _XTAL_FREQ 8000000
 #pragma config FOSC = HSHP
 #pragma config WDTEN = OFF
 
@@ -143,6 +143,8 @@ int main(int argc, char** argv) {
     INTCON2bits.INTEDG0 = 1;
     INTCON2bits.INTEDG1 = 1;
     INTCON3bits.INT1IE = 1;
+    INTCONbits.INT0IF = 0;
+    INTCON3bits.INT1IF = 0;
     
     TMR0 = 6;       // Timer0 (Control loop interupt initial value) - 125 Hz , 8 ms
 
@@ -151,10 +153,10 @@ int main(int argc, char** argv) {
     CCP4CON = 0x3C; // ' Setup CCP4 single output for PWM , bits 3,2 , bits 5,4 = 9th and 10 bit of duty cycle ,
     CCPR4L = 0x00; // ' PWM Value 
 
-    PR2 = 0xC7; //' set the PWM period = [(PR2+1)x 4xTosc / TM2 prescale value  
+    PR2 = 0x31; //' set the PWM period = [(PR2+1)x 4xTosc / TM2 prescale value  
     T2CON = 0x04; //' Timer 2 ON - POSTSCALLER SETTING NOT USED BY PWM , OLY PRESCALE SETTING - PRESCALE: 00 =1 ,01 = 4,1x = 16
     // ' ( bit 7 = x, bit6-3 postscale, bit2=0 timer off ,bit1-0 = prescale )
-    TMR2 = 200; //TMR2-1 must be maximum CCPR4L value 
+    TMR2 = 49; //TMR2-1 must be maximum CCPR4L value 
 
     lcd_init();
     first_scene();
@@ -167,8 +169,8 @@ int main(int argc, char** argv) {
         RE1_new = RE1;
         RE2_new = RE2;
                 
-        if (scene_n == 1) position = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;
-        if (scene_n == 2) velocity = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;
+        if (scene_n == 1) p_set_point = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;
+        if (scene_n == 2) v_set_point = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;
         if (scene_n == 3) p_Kp = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
         if (scene_n == 4) p_Ki = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
         if (scene_n == 5) p_Kd = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
@@ -311,7 +313,6 @@ int main(int argc, char** argv) {
             if (scene_n == 2) kp_scene();
             if (scene_n == 3) ki_scene();
             if (scene_n == 4) kd_scene();
-            if (scene_n == 5) posVel_output_scene();
             if (scene_n == 6) K1_output_scene();
 
             if (scene_n == 7) {
@@ -345,9 +346,11 @@ int main(int argc, char** argv) {
         RE2_old = RE2_new;
         
         // ANY OTHER SLOW CODES
-        
-        
-        
+        if (scene_n == 6) {
+            lcd_write(0xC);
+            posVel_output_scene();
+        }
+
         
         
     }
@@ -369,7 +372,7 @@ void posVel_output_scene(void) {
     lcd_goto(64);
     sprintf(str, "Velocity: %d", velocity);
     lcd_puts(str);
-    lcd_goto(60);
+    lcd_goto(58);
 }
 
 void K1_output_scene(void) {
@@ -379,14 +382,14 @@ void K1_output_scene(void) {
     lcd_goto(64);
     sprintf(str, "Ki: %0.3f", p_Ki);
     lcd_puts(str);
-    lcd_goto(60);
+    lcd_goto(58);
 }
 
 void K2_output_scene(void) {
     lcd_goto(0);
     sprintf(str, "Kd: %0.3f", p_Kd);
     lcd_puts(str);
-    lcd_goto(60);
+    lcd_goto(58);
 }
 
 void pos_scene(void) {
@@ -458,8 +461,7 @@ void interrupt high_priorty() {
             c_o = -1*c_o;
         }
         CCPR4L = c_o;
-        TMR0IF = 0;
-        
+        TMR0IF = 0;   
     }
 }
 

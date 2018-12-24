@@ -29,14 +29,16 @@
 #define RE0 PORTEbits.RE0
 #define RE1 PORTEbits.RE1
 #define RE2 PORTEbits.RE2
+#define MotorA PORTCbits.RC3
+#define MotorB PORTDbits.RD0
 
 #define A PORTBbits.RB0
 #define B PORTBbits.RB1
 #define A_not PORTBbits.RB2
 #define B_not PORTBbits.RB3
 
-#define p_controller_MAX 200
-#define p_controller_MIN -200
+#define p_controller_MAX 49
+#define p_controller_MIN -49
 #define v_controller_MAX 1000
 #define v_controller_MIN -1000
 #define p_integral_MAX   2000
@@ -60,7 +62,7 @@ unsigned int scene_n = 0; //Scene number
 double v_Kp = 0.0; //Proportional gain
 double v_Ki = 0.0; //Integral gain
 double v_Kd = 0.0; //Derivative gain
-double p_Kp = 5.0; //Proportional gain
+double p_Kp = 0.0; //Proportional gain
 double p_Ki = 0.0; //Integral gain
 double p_Kd = 0.0; //Derivative gain
 char input_mode; //Input mode flag
@@ -93,8 +95,8 @@ int p_integral = 0;
 int p_derivative = 0;
 int p_controller_out = 0;
 
-unsigned int velocity = 5000; // ANGULAR VELOCITY ( PULSE / dt )
-long int position = -1000;     // POSITION in PULSES
+unsigned int velocity = 0; // ANGULAR VELOCITY ( PULSE / dt )
+long int position = 0;     // POSITION in PULSES
 long int old_position = 0;
 
 
@@ -456,10 +458,15 @@ void interrupt high_priorty() {
         INT1IF = 0;
     }
     if (TMR0IF) {
-        TMR0 = 6;
-        c_o = position_control(1000);
-        if (c_o < 0) {
-            c_o = -1*c_o;
+        c_o = position_control(p_set_point);
+        if (c_o >= 0) {
+            MotorA = 1;
+            MotorB = 0;
+        }
+        else {
+            MotorA = 0;
+            MotorB = 1;
+            c_o = -c_o;
         }
         CCPR4L = c_o;
         TMR0IF = 0;   
@@ -500,9 +507,7 @@ int position_control(int p_set_point) {     // PI CONTROL
     } else if (p_integral < p_integral_MIN) {
         p_integral = p_integral_MIN;
     }
-    /* p_derivative = p_error - p_old_error;*/
     p_controller_out = floor(p_Kp * p_error + p_Ki * p_integral /* + p_Kd * p_derivative */);
-    /* p_error = p_old_error; */
 
     if (p_controller_out > p_controller_MAX) {
         p_controller_out = p_controller_MAX;

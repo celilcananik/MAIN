@@ -93,8 +93,8 @@ int p_integral = 0;
 int p_derivative = 0;
 int p_controller_out = 0;
 
-unsigned int velocity = 0; // ANGULAR VELOCITY ( PULSE / dt )
-long int position = 0;     // POSITION in PULSES
+unsigned int velocity = 5000; // ANGULAR VELOCITY ( PULSE / dt )
+long int position = -1000;     // POSITION in PULSES
 long int old_position = 0;
 
 
@@ -345,11 +345,13 @@ int main(int argc, char** argv) {
         RE1_old = RE1_new;
         RE2_old = RE2_new;
         
-        // ANY OTHER SLOW CODES
         if (scene_n == 6) {
             lcd_write(0xC);
             posVel_output_scene();
         }
+        
+        // ANY OTHER SLOW CODES
+        
 
         
         
@@ -367,11 +369,10 @@ void first_scene(void) {
 
 void posVel_output_scene(void) {
     lcd_goto(0);
-    sprintf(str, "Position: %d", position);
+    sprintf(str, "Position: %06d", position);
     lcd_puts(str);
     lcd_goto(64);
-    sprintf(str, "Velocity: %d", velocity);
-    lcd_puts(str);
+    sprintf(str, "Velocity: %06d", velocity);
     lcd_goto(58);
 }
 

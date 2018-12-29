@@ -1,6 +1,6 @@
 /* 
  * File:   newmain.c
- * Author: Celil Can ANIK, Erdem Onat ARDALI, O?uzhan Akba?
+ * Author: Celil Can ANIK, Erdem Onat ARDALI, Oguzhan AKBAS
  * Created on 09 Kasim 2018 Çarsamba, 20:28
  * 
  * First scene shows "Press OK to insert parameter" on LCD
@@ -50,7 +50,6 @@
 int c_o=0;
 // dummy variables end
 
-
 unsigned char str[13] = "            ";
 unsigned char str2[4] = "   ";
 int cnt = 0; //Indicator for which digit cursor is on
@@ -68,6 +67,7 @@ double p_Kd = 0.0; //Derivative gain
 char input_mode; //Input mode flag
 bit isFirstScene; //First Scene flag
 bit isEsc; //Escape button flag
+
 //Old and new bits for catching rising trigger of buttons
 bit RC0_old = 0;
 bit RC1_old = 0;
@@ -99,16 +99,30 @@ unsigned int velocity = 0; // ANGULAR VELOCITY ( PULSE / dt )
 long int position = 0;     // POSITION in PULSES
 long int old_position = 0;
 
-
 void first_scene(void); //Shows the first scene on LCD
 void posVel_output_scene(void); //Shows the output scene on LCD for position and velocity
-void K1_output_scene(void); //Shows the first output scene on LCD for gains
+//  Comment next two functions to display both position and velocity gains
+void K1_output_scene(void); //Shows the first output scene on LCD for gains 
 void K2_output_scene(void); //Shows the second output scene on LCD for gains
+/*  Uncomment to display both position and velocity gains
+void p_K1_output_scene(void); //Shows the first output scene on LCD for gains for position
+void p_K2_output_scene(void); //Shows the second output scene on LCD for gains for position
+void v_K1_output_scene(void); //Shows the first output scene on LCD for gains for velocity
+void v_K2_output_scene(void); //Shows the second output scene on LCD for gains for velocity */
 void pos_scene(void); //Shows the position scene on LCD
-void vel_scene(void); //Shows the velocity scene on LCD
+/*  Uncomment to display input mode for velocity
+void vel_scene(void); //Shows the velocity scene on LCD */
 void kp_scene(void); //Shows the proportional gain scene on LCD
+//  Comment next three functions to display both position and velocity gains
 void ki_scene(void); //Shows the integral gain scene on LCD
 void kd_scene(void); //Shows the derivative gain scene on LCD
+/*  Uncomment to display both position and velocity gains
+void p_kp_scene(void); //Shows the proportional gain scene on LCD for position
+void p_ki_scene(void); //Shows the integral gain scene on LCD for position
+void p_kd_scene(void); //Shows the derivative gain scene on LCD for position
+void v_kp_scene(void); //Shows the proportional gain scene on LCD for velocity
+void v_ki_scene(void); //Shows the proportional gain scene on LCD for velocity
+void v_kd_scene(void); //Shows the proportional gain scene on LCD for velocity */
 void delay(int ms); // delay
 int velocity_control(int set_p); // velocity control loop
 int position_control(int set_p); // position control loop
@@ -172,22 +186,29 @@ int main(int argc, char** argv) {
         RE2_new = RE2;
                 
         if (scene_n == 1) p_set_point = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;
-        if (scene_n == 2) v_set_point = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;
-        if (scene_n == 3) p_Kp = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
-        if (scene_n == 4) p_Ki = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
-        if (scene_n == 5) p_Kd = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
+        /* Uncomment to display velocity
+        if (scene_n == 2) v_set_point = first_dig * 1000 + second_dig * 100 + third_dig * 10 + fourth_dig;*/
+        // Increment scene_n by 1 under this comment if velocity is displayed
+        if (scene_n == 2) p_Kp = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
+        if (scene_n == 3) p_Ki = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
+        if (scene_n == 4) p_Kd = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
+        /*  Uncomment to display both position and velocity gains
+        if (scene_n == 6) v_Kp = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
+        if (scene_n == 7) v_Ki = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;
+        if (scene_n == 8) v_Kd = first_dig + second_dig / 10.0 + third_dig / 100.0 + fourth_dig / 1000.0;*/
 
         //Up button
         if (RC0_old == 0 && RC0_new == 1 && input_mode) {
+            // Increment scene_n by 1 if velocity is displayed
             if (cnt == 0) {
                 first_dig++;
                 if (first_dig > 9) first_dig = 0;
                 sprintf(str2, "%d", first_dig);
                 lcd_puts(str2);
-                if (scene_n > 2 && cnt == 0) lcd_goto(64);
-                else if (scene_n > 2 && cnt == 1) lcd_goto(66);
-                else if (scene_n > 2 && cnt == 2) lcd_goto(67);
-                else if (scene_n > 2 && cnt == 3) lcd_goto(68);
+                if (scene_n > 1 && cnt == 0) lcd_goto(64);
+                else if (scene_n > 1 && cnt == 1) lcd_goto(66);
+                else if (scene_n > 1 && cnt == 2) lcd_goto(67);
+                else if (scene_n > 1 && cnt == 3) lcd_goto(68);
                 else lcd_goto(64 + cnt);
             }
             if (cnt == 1) {
@@ -195,10 +216,10 @@ int main(int argc, char** argv) {
                 if (second_dig > 9) second_dig = 0;
                 sprintf(str2, "%d", second_dig);
                 lcd_puts(str2);
-                if (scene_n > 2 && cnt == 0) lcd_goto(64);
-                else if (scene_n > 2 && cnt == 1) lcd_goto(66);
-                else if (scene_n > 2 && cnt == 2) lcd_goto(67);
-                else if (scene_n > 2 && cnt == 3) lcd_goto(68);
+                if (scene_n > 1 && cnt == 0) lcd_goto(64);
+                else if (scene_n > 1 && cnt == 1) lcd_goto(66);
+                else if (scene_n > 1 && cnt == 2) lcd_goto(67);
+                else if (scene_n > 1 && cnt == 3) lcd_goto(68);
                 else lcd_goto(64 + cnt);
             }
             if (cnt == 2) {
@@ -206,10 +227,10 @@ int main(int argc, char** argv) {
                 if (third_dig > 9) third_dig = 0;
                 sprintf(str2, "%d", third_dig);
                 lcd_puts(str2);
-                if (scene_n > 2 && cnt == 0) lcd_goto(64);
-                else if (scene_n > 2 && cnt == 1) lcd_goto(66);
-                else if (scene_n > 2 && cnt == 2) lcd_goto(67);
-                else if (scene_n > 2 && cnt == 3) lcd_goto(68);
+                if (scene_n > 1 && cnt == 0) lcd_goto(64);
+                else if (scene_n > 1 && cnt == 1) lcd_goto(66);
+                else if (scene_n > 1 && cnt == 2) lcd_goto(67);
+                else if (scene_n > 1 && cnt == 3) lcd_goto(68);
                 else lcd_goto(64 + cnt);
             }
             if (cnt == 3) {
@@ -217,25 +238,26 @@ int main(int argc, char** argv) {
                 if (fourth_dig > 9) fourth_dig = 0;
                 sprintf(str2, "%d", fourth_dig);
                 lcd_puts(str2);
-                if (scene_n > 2 && cnt == 0) lcd_goto(64);
-                else if (scene_n > 2 && cnt == 1) lcd_goto(66);
-                else if (scene_n > 2 && cnt == 2) lcd_goto(67);
-                else if (scene_n > 2 && cnt == 3) lcd_goto(68);
+                if (scene_n > 1 && cnt == 0) lcd_goto(64);
+                else if (scene_n > 1 && cnt == 1) lcd_goto(66);
+                else if (scene_n > 1 && cnt == 2) lcd_goto(67);
+                else if (scene_n > 1 && cnt == 3) lcd_goto(68);
                 else lcd_goto(64 + cnt);
             }
         }
 
         //Down button
         if (RC1_old == 0 && RC1_new == 1 && input_mode) {
+            // Increment scene_n by 1 if velocity is displayed
             if (cnt == 0) {
                 first_dig--;
                 if (first_dig < 0) first_dig = 9;
                 sprintf(str2, "%d", first_dig);
                 lcd_puts(str2);
-                if (scene_n > 2 && cnt == 0) lcd_goto(64);
-                else if (scene_n > 2 && cnt == 1) lcd_goto(66);
-                else if (scene_n > 2 && cnt == 2) lcd_goto(67);
-                else if (scene_n > 2 && cnt == 3) lcd_goto(68);
+                if (scene_n > 1 && cnt == 0) lcd_goto(64);
+                else if (scene_n > 1 && cnt == 1) lcd_goto(66);
+                else if (scene_n > 1 && cnt == 2) lcd_goto(67);
+                else if (scene_n > 1 && cnt == 3) lcd_goto(68);
                 else lcd_goto(64 + cnt);
             }
             if (cnt == 1) {
@@ -243,10 +265,10 @@ int main(int argc, char** argv) {
                 if (second_dig < 0) second_dig = 9;
                 sprintf(str2, "%d", second_dig);
                 lcd_puts(str2);
-                if (scene_n > 2 && cnt == 0) lcd_goto(64);
-                else if (scene_n > 2 && cnt == 1) lcd_goto(66);
-                else if (scene_n > 2 && cnt == 2) lcd_goto(67);
-                else if (scene_n > 2 && cnt == 3) lcd_goto(68);
+                if (scene_n > 1 && cnt == 0) lcd_goto(64);
+                else if (scene_n > 1 && cnt == 1) lcd_goto(66);
+                else if (scene_n > 1 && cnt == 2) lcd_goto(67);
+                else if (scene_n > 1 && cnt == 3) lcd_goto(68);
                 else lcd_goto(64 + cnt);
             }
             if (cnt == 2) {
@@ -254,10 +276,10 @@ int main(int argc, char** argv) {
                 if (third_dig < 0) third_dig = 9;
                 sprintf(str2, "%d", third_dig);
                 lcd_puts(str2);
-                if (scene_n > 2 && cnt == 0) lcd_goto(64);
-                else if (scene_n > 2 && cnt == 1) lcd_goto(66);
-                else if (scene_n > 2 && cnt == 2) lcd_goto(67);
-                else if (scene_n > 2 && cnt == 3) lcd_goto(68);
+                if (scene_n > 1 && cnt == 0) lcd_goto(64);
+                else if (scene_n > 1 && cnt == 1) lcd_goto(66);
+                else if (scene_n > 1 && cnt == 2) lcd_goto(67);
+                else if (scene_n > 1 && cnt == 3) lcd_goto(68);
                 else lcd_goto(64 + cnt);
             }
             if (cnt == 3) {
@@ -265,33 +287,35 @@ int main(int argc, char** argv) {
                 if (fourth_dig < 0) fourth_dig = 9;
                 sprintf(str2, "%d", fourth_dig);
                 lcd_puts(str2);
-                if (scene_n > 2 && cnt == 0) lcd_goto(64);
-                else if (scene_n > 2 && cnt == 1) lcd_goto(66);
-                else if (scene_n > 2 && cnt == 2) lcd_goto(67);
-                else if (scene_n > 2 && cnt == 3) lcd_goto(68);
+                if (scene_n > 1 && cnt == 0) lcd_goto(64);
+                else if (scene_n > 1 && cnt == 1) lcd_goto(66);
+                else if (scene_n > 1 && cnt == 2) lcd_goto(67);
+                else if (scene_n > 1 && cnt == 3) lcd_goto(68);
                 else lcd_goto(64 + cnt);
             }
         }
 
         //Right button
         if (RC2_old == 0 && RC2_new == 1 && input_mode) {
+            // Increment scene_n by 1 if velocity is displayed
             cnt++;
             if (cnt == 4) cnt = 0;
             if (scene_n > 2 && cnt == 0) lcd_goto(64);
-            else if (scene_n > 2 && cnt == 1) lcd_goto(66);
-            else if (scene_n > 2 && cnt == 2) lcd_goto(67);
-            else if (scene_n > 2 && cnt == 3) lcd_goto(68);
+            else if (scene_n > 1 && cnt == 1) lcd_goto(66);
+            else if (scene_n > 1 && cnt == 2) lcd_goto(67);
+            else if (scene_n > 1 && cnt == 3) lcd_goto(68);
             else lcd_goto(64 + cnt);
         }
 
         //Left button
         if (RE0_old == 0 && RE0_new == 1 && input_mode) {
+            // Increment scene_n by 1 if velocity is displayed
             cnt--;
             if (cnt < 0) cnt = 3;
             if (scene_n > 2 && cnt == 0) lcd_goto(64);
-            else if (scene_n > 2 && cnt == 1) lcd_goto(66);
-            else if (scene_n > 2 && cnt == 2) lcd_goto(67);
-            else if (scene_n > 2 && cnt == 3) lcd_goto(68);
+            else if (scene_n > 1 && cnt == 1) lcd_goto(66);
+            else if (scene_n > 1 && cnt == 2) lcd_goto(67);
+            else if (scene_n > 1 && cnt == 3) lcd_goto(68);
             else lcd_goto(64 + cnt);
         }
 
@@ -299,32 +323,72 @@ int main(int argc, char** argv) {
         if (RE1_old == 0 && RE1_new == 1 || isEsc) {
             input_mode = 1;
             isFirstScene = 0;
-            if(scene_n < 5) {
+            // If velocity is displayed, increment scene_n by 1
+            if(scene_n < 4) {
                 first_dig = 0;
                 second_dig = 0;
                 third_dig = 0;
                 fourth_dig = 0;
             }
-
+            
             lcd_clear();
 
-            if (scene_n > 4) input_mode = 0;
+            //If velocity is displayed, increment scene_n by 1
+            if (scene_n > 3) input_mode = 0;
+
+            if (scene_n == 0) pos_scene();
+            //if (scene_n == 1) vel_scene(); Uncomment to display input mode for velocity
+            // If velocity is displayed, increment scene_n by 1 for every scene under this comment
+            if (scene_n == 1) kp_scene();  
+            if (scene_n == 2) ki_scene();
+            if (scene_n == 3) kd_scene();
+            if (scene_n == 5) K1_output_scene();
+
+            if (scene_n == 6) {
+                K2_output_scene();
+                scene_n = 3;
+            }
+            if (scene_n < 6) {
+                scene_n++;
+                cnt = 0;
+                lcd_write(0xE);
+            }
+            
+            /*  Uncomment to display input mode for both position and
+             *  velocity gains. Do not forget to uncomment the functions.
+             * 
+            if(scene_n < 8) {
+                first_dig = 0;
+                second_dig = 0;
+                third_dig = 0;
+                fourth_dig = 0;
+            }
+             
+             lcd_clear();
+            
+            if (scene_n > 7) input_mode = 0;
 
             if (scene_n == 0) pos_scene();
             if (scene_n == 1) vel_scene();
-            if (scene_n == 2) kp_scene();
-            if (scene_n == 3) ki_scene();
-            if (scene_n == 4) kd_scene();
-            if (scene_n == 6) K1_output_scene();
+            if (scene_n == 2) p_kp_scene();
+            if (scene_n == 3) p_ki_scene();
+            if (scene_n == 4) p_kd_scene();
+            if (scene_n == 5) v_kp_scene();
+            if (scene_n == 6) v_ki_scene();
+            if (scene_n == 7) v_kd_scene();
+            if (scene_n == 9) p_K1_output_scene();
+            if (scene_n == 10) p_K2_output_scene();
+            if (scene_n == 11) v_K1_output_scene();
 
-            if (scene_n == 7) {
-                K2_output_scene();
-                scene_n = 4;
+            if (scene_n == 12) {
+                v_K2_output_scene();
+                scene_n = 7;
             }
-            if (scene_n < 7) {
+            if (scene_n < 12) {
                 scene_n++;
                 cnt = 0;
-            }
+                lcd_write(0xE);
+            }*/
             if (isEsc) isEsc = 0;
         }
 
@@ -347,11 +411,12 @@ int main(int argc, char** argv) {
         RE1_old = RE1_new;
         RE2_old = RE2_new;
         
-        if (scene_n == 6) {
-            lcd_write(0xC);
-            posVel_output_scene();
-        }
+        /*  For both position and velocity gain display
+        if (scene_n == 9) posVel_output_scene();*/
         
+        //If velocity is displayed, increment scene_n by 1
+        if (scene_n == 5) posVel_output_scene(); 
+
         // ANY OTHER SLOW CODES
         
 
@@ -370,30 +435,68 @@ void first_scene(void) {
 }
 
 void posVel_output_scene(void) {
+    lcd_write(0xC); //Closing cursor
     lcd_goto(0);
-    sprintf(str, "Position: %06d", position);
+    if(position < 0) sprintf(str, "Position: %06d", position);
+    if(position >= 0) sprintf(str, "Position:  %05d", position);
     lcd_puts(str);
+    /* Uncomment to display velocity
     lcd_goto(64);
-    sprintf(str, "Velocity: %06d", velocity);
-    lcd_goto(58);
+    sprintf(str, "Velocity:  %05d", velocity);
+    lcd_puts(str);*/
 }
 
 void K1_output_scene(void) {
+    lcd_write(0xC); //Closing cursor
     lcd_goto(0);
     sprintf(str, "Kp: %0.3f", p_Kp);
     lcd_puts(str);
     lcd_goto(64);
     sprintf(str, "Ki: %0.3f", p_Ki);
     lcd_puts(str);
-    lcd_goto(58);
 }
 
 void K2_output_scene(void) {
+    lcd_write(0xC); //Closing cursor
     lcd_goto(0);
     sprintf(str, "Kd: %0.3f", p_Kd);
     lcd_puts(str);
-    lcd_goto(58);
+} 
+
+/*  Uncomment to display input mode for both position and velocity gains.
+ * 
+void p_K1_output_scene(void) {
+    lcd_write(0xC); //Closing cursor
+    lcd_goto(0);
+    sprintf(str, "Pos_Kp: %0.3f", p_Kp);
+    lcd_puts(str);
+    lcd_goto(64);
+    sprintf(str, "Pos_Ki: %0.3f", p_Ki);
+    lcd_puts(str);
 }
+
+void p_K2_output_scene(void) {
+    lcd_write(0xC); //Closing cursor
+    lcd_goto(0);
+    sprintf(str, "Pos_Kd: %0.3f", p_Kd);
+    lcd_puts(str);
+}
+void v_K1_output_scene(void) {
+    lcd_write(0xC); //Closing cursor
+    lcd_goto(0);
+    sprintf(str, "Vel_Kp: %0.3f", v_Kp);
+    lcd_puts(str);
+    lcd_goto(64);
+    sprintf(str, "Vel_Ki: %0.3f", v_Ki);
+    lcd_puts(str);
+}
+
+void v_K2_output_scene(void) {
+    lcd_write(0xC); //Closing cursor
+    lcd_goto(0);
+    sprintf(str, "Vel_Kd: %0.3f", v_Kd);
+    lcd_puts(str);
+}*/
 
 void pos_scene(void) {
     lcd_goto(0);
@@ -404,6 +507,7 @@ void pos_scene(void) {
     lcd_goto(64);
 }
 
+/*  Uncomment to display input mode for velocity
 void vel_scene(void) {
     lcd_goto(0);
     lcd_puts("Enter velocity:");
@@ -411,7 +515,7 @@ void vel_scene(void) {
     sprintf(str2, "%d%d%d%d", first_dig, second_dig, third_dig, fourth_dig);
     lcd_puts(str2);
     lcd_goto(64);
-}
+}*/
 
 void kp_scene(void) {
     lcd_goto(0);
@@ -439,6 +543,61 @@ void kd_scene(void) {
     lcd_puts(str2);
     lcd_goto(64);
 }
+
+/*  Uncomment to display both position and velocity gains
+void p_kp_scene(void) {
+    lcd_goto(0);
+    lcd_puts("Enter Pos_Kp:");
+    lcd_goto(64);
+    sprintf(str2, "%d.%d%d%d", first_dig, second_dig, third_dig, fourth_dig);
+    lcd_puts(str2);
+    lcd_goto(64);
+}
+
+void p_ki_scene(void) {
+    lcd_goto(0);
+    lcd_puts("Enter Pos_Ki:");
+    lcd_goto(64);
+    sprintf(str2, "%d.%d%d%d", first_dig, second_dig, third_dig, fourth_dig);
+    lcd_puts(str2);
+    lcd_goto(64);
+}
+
+void p_kd_scene(void) {
+    lcd_goto(0);
+    lcd_puts("Enter Pos_Kd:");
+    lcd_goto(64);
+    sprintf(str2, "%d.%d%d%d", first_dig, second_dig, third_dig, fourth_dig);
+    lcd_puts(str2);
+    lcd_goto(64);
+}
+
+void v_kp_scene(void) {
+    lcd_goto(0);
+    lcd_puts("Enter Vel_Kp:");
+    lcd_goto(64);
+    sprintf(str2, "%d.%d%d%d", first_dig, second_dig, third_dig, fourth_dig);
+    lcd_puts(str2);
+    lcd_goto(64);
+}
+
+void v_ki_scene(void) {
+    lcd_goto(0);
+    lcd_puts("Enter Vel_Ki:");
+    lcd_goto(64);
+    sprintf(str2, "%d.%d%d%d", first_dig, second_dig, third_dig, fourth_dig);
+    lcd_puts(str2);
+    lcd_goto(64);
+}
+
+void v_kd_scene(void) {
+    lcd_goto(0);
+    lcd_puts("Enter Vel_Kd:");
+    lcd_goto(64);
+    sprintf(str2, "%d.%d%d%d", first_dig, second_dig, third_dig, fourth_dig);
+    lcd_puts(str2);
+    lcd_goto(64);
+}*/
 
 void interrupt high_priorty() {
     if (INT0IF) {

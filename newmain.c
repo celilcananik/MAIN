@@ -409,11 +409,6 @@ int main(int argc, char** argv) {
                 third_dig = 0;
                 fourth_dig = 0;
             }
-            if(input_mode && !isFirstScene) {
-                lcd_clear();
-                scene_n--;
-                cnt = 0;
-            }
         }
         RC0_old = RC0_new;
         RC1_old = RC1_new;

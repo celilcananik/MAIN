@@ -48,6 +48,7 @@
 
 // dummy variables
 int c_o=0;
+char run = 0;
 // dummy variables end
 
 unsigned char str[13] = "            ";
@@ -82,16 +83,16 @@ bit RE0_new = 0;
 bit RE1_new = 0;
 bit RE2_new = 0;
 
-int v_error = 0;
-int v_old_error = 0;
+long long int v_error = 0;
+long long int v_old_error = 0;
 int v_set_point = 0;
-int v_integral = 0;
+long long int v_integral = 0;
 int v_derivative = 0;
 int v_controller_out = 0;
-int p_error = 0;
-int p_old_error = 0;
-int p_set_point = 0;
-int p_integral = 0;
+long long double p_error = 0;
+long long double p_old_error = 0;
+long long double p_set_point = 0;
+long long double p_integral = 0;
 int p_derivative = 0;
 int p_controller_out = 0;
 
@@ -625,16 +626,22 @@ void interrupt high_priorty() {
         }
         INT1IF = 0;
     }
-    if (TMR0IF) {
+    if (TMR0IF && run) {
+        TMR0 = 6;
         c_o = position_control(p_set_point);
-        if (c_o >= 0) {
+        if (c_o > 0) {
             MotorA = 1;
             MotorB = 0;
         }
-        else {
+        else if (c_o < 0){
             MotorA = 0;
             MotorB = 1;
             c_o = -c_o;
+        }
+        else {
+            MotorA = 0;
+            MotorB = 0;
+            c_o = 0;
         }
         CCPR4L = c_o;
         TMR0IF = 0;   
@@ -669,18 +676,23 @@ int velocity_control(int v_set_point) {
 
 int position_control(int p_set_point) {     // PI CONTROL
     p_error = p_set_point - position;
+    if (p_error > -30 && p_error < 30) {
+        return 0;
+    }
     p_integral = floor(p_integral + p_error);
-    if (p_integral > p_integral_MAX) {
+    /* if (p_integral > p_integral_MAX) {
         p_integral = p_integral_MAX;
     } else if (p_integral < p_integral_MIN) {
         p_integral = p_integral_MIN;
-    }
-    p_controller_out = floor(p_Kp * p_error + p_Ki * p_integral /* + p_Kd * p_derivative */);
+    } */
+    p_derivative = p_error - p_old_error;
+    p_controller_out = floor(p_Kp * p_error + p_Ki * p_integral + p_Kd * p_derivative);
 
     if (p_controller_out > p_controller_MAX) {
         p_controller_out = p_controller_MAX;
     } else if (p_controller_out < p_controller_MIN) {
         p_controller_out = p_controller_MIN;
     }
+    
     return p_controller_out;
 }
